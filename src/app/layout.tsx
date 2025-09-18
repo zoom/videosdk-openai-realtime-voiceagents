@@ -4,7 +4,7 @@ import "./lib/envSetup";
 
 export const metadata: Metadata = {
   title: "Realtime API Agents",
-  description: "A demo app from OpenAI.",
+  description: "A demo app from Zoom.",
 };
 
 export default function RootLayout({

@@ -7,7 +7,7 @@ import { GuardrailOutputZod, GuardrailOutput } from '@/app/types';
 // By sending it a corrective message and having it redirect the conversation.
 export async function runGuardrailClassifier(
   message: string,
-  companyName: string = 'newTelco',
+  companyName: string = 'Zoom',
 ): Promise<GuardrailOutput> {
   const messages = [
     {

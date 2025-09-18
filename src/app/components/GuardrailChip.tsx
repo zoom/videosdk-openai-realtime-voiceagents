@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import {
-  CheckCircledIcon,
-  CrossCircledIcon,
+  CheckCircleIcon,
+  CircleXIcon,
   ClockIcon,
-} from "@radix-ui/react-icons";
+} from "lucide-react";
 import { GuardrailResultType } from "../types";
 
 export interface ModerationChipProps {
@@ -30,8 +30,8 @@ export function GuardrailChip({
     guardrailResult.status === "IN_PROGRESS"
       ? "PENDING"
       : guardrailResult.category === "NONE"
-      ? "PASS"
-      : "FAIL";
+        ? "PASS"
+        : "FAIL";
 
   // Variables for icon, label, and styling classes based on state
   let IconComponent;
@@ -44,12 +44,12 @@ export function GuardrailChip({
       textColorClass = "text-gray-600";
       break;
     case "PASS":
-      IconComponent = CheckCircledIcon;
+      IconComponent = CheckCircleIcon;
       label = "Pass";
       textColorClass = "text-green-600";
       break;
     case "FAIL":
-      IconComponent = CrossCircledIcon;
+      IconComponent = CircleXIcon;
       label = "Fail";
       textColorClass = "text-red-500";
       break;
@@ -69,9 +69,8 @@ export function GuardrailChip({
           }
         }}
         // Only add pointer cursor if clickable (PASS or FAIL state)
-        className={`inline-flex items-center gap-1 rounded ${
-          state !== "PENDING" ? "cursor-pointer" : ""
-        }`}
+        className={`inline-flex items-center gap-1 rounded ${state !== "PENDING" ? "cursor-pointer" : ""
+          }`}
       >
         Guardrail:
         <div className={`flex items-center gap-1 ${textColorClass}`}>
@@ -81,9 +80,8 @@ export function GuardrailChip({
       {/* Container for expandable content */}
       {state !== "PENDING" && guardrailResult.category && guardrailResult.rationale && (
         <div
-          className={`overflow-hidden transition-all duration-300 ${
-            expanded ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
-          }`}
+          className={`overflow-hidden transition-all duration-300 ${expanded ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
+            }`}
         >
           <div className="pt-2 text-xs">
             <strong>

@@ -17,7 +17,7 @@ export interface RealtimeSessionCallbacks {
 
 export interface ConnectOptions {
   getEphemeralKey: () => Promise<string>;
-  initialAgents: RealtimeAgent[];
+  initialAgent: RealtimeAgent;
   audioElement?: HTMLAudioElement;
   extraContext?: Record<string, any>;
   outputGuardrails?: any[];
@@ -61,7 +61,7 @@ export function useRealtimeSession(callbacks: RealtimeSessionCallbacks = {}) {
       default: {
         logServerEvent(event);
         break;
-      } 
+      }
     }
   }
 
@@ -78,13 +78,6 @@ export function useRealtimeSession(callbacks: RealtimeSessionCallbacks = {}) {
     [],
   );
 
-  const handleAgentHandoff = (item: any) => {
-    const history = item.context.history;
-    const lastMessage = history[history.length - 1];
-    const agentName = lastMessage.name.split("transfer_to_")[1];
-    callbacks.onAgentHandoff?.(agentName);
-  };
-
   useEffect(() => {
     if (sessionRef.current) {
       // Log server errors
@@ -96,7 +89,6 @@ export function useRealtimeSession(callbacks: RealtimeSessionCallbacks = {}) {
       });
 
       // history events
-      sessionRef.current.on("agent_handoff", handleAgentHandoff);
       sessionRef.current.on("agent_tool_start", historyHandlers.handleAgentToolStart);
       sessionRef.current.on("agent_tool_end", historyHandlers.handleAgentToolEnd);
       sessionRef.current.on("history_updated", historyHandlers.handleHistoryUpdated);
@@ -111,7 +103,7 @@ export function useRealtimeSession(callbacks: RealtimeSessionCallbacks = {}) {
   const connect = useCallback(
     async ({
       getEphemeralKey,
-      initialAgents,
+      initialAgent,
       audioElement,
       extraContext,
       outputGuardrails,
@@ -121,7 +113,7 @@ export function useRealtimeSession(callbacks: RealtimeSessionCallbacks = {}) {
       updateStatus('CONNECTING');
 
       const ek = await getEphemeralKey();
-      const rootAgent = initialAgents[0];
+      const rootAgent = initialAgent;
 
       // This lets you use the codec selector in the UI to force narrow-band (8 kHz) codecs to
       //  simulate how the voice agent sounds over a PSTN/SIP phone call.
@@ -131,6 +123,7 @@ export function useRealtimeSession(callbacks: RealtimeSessionCallbacks = {}) {
       sessionRef.current = new RealtimeSession(rootAgent, {
         transport: new OpenAIRealtimeWebRTC({
           audioElement,
+          // mediaStream: mediaStream.,
           // Set preferred codec before offer creation
           changePeerConnection: async (pc: RTCPeerConnection) => {
             applyCodec(pc);
@@ -170,7 +163,7 @@ export function useRealtimeSession(callbacks: RealtimeSessionCallbacks = {}) {
   const interrupt = useCallback(() => {
     sessionRef.current?.interrupt();
   }, []);
-  
+
   const sendUserText = useCallback((text: string) => {
     assertconnected();
     sessionRef.current!.sendMessage(text);
