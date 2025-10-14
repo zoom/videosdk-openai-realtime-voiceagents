@@ -14,20 +14,22 @@ import { chatSupervisorScenario } from "@/app/agentConfigs/chatSupervisor";
 import { chatSupervisorCompanyName } from "@/app/agentConfigs/chatSupervisor";
 import { useHandleSessionHistory } from "./hooks/useHandleSessionHistory";
 import VideochatClientWrapper from "./zoom/VideochatClientWrapper";
+import type { VideoClient } from '@zoom/videosdk';
 
 function App({ jwt }: { jwt: string }) {
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>("DISCONNECTED");
   const [isEventsPaneExpanded, setIsEventsPaneExpanded] = useState<boolean>(false);
   const [userText, setUserText] = useState<string>("");
-  const [isPTTActive, setIsPTTActive] = useState<boolean>(false);
+  const [isPTTActive, setIsPTTActive] = useState<boolean>(true);
   const [isPTTUserSpeaking, setIsPTTUserSpeaking] = useState<boolean>(false);
   const [isAudioPlaybackEnabled, setIsAudioPlaybackEnabled] = useState<boolean>(true);
   const { addTranscriptBreadcrumb } = useTranscript();
   const { logClientEvent, logServerEvent } = useEvent();
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
+  const clientRef = useRef<typeof VideoClient>(null);
 
   const { connect, disconnect, sendUserText, sendEvent, interrupt, mute, } = useRealtimeSession({
-    onConnectionChange: (s) => setSessionStatus(s as SessionStatus),
+    onConnectionChange: (s) => { console.log('onConnectionChange', s); setSessionStatus(s as SessionStatus) },
   });
 
   const sdkAudioElement = React.useMemo(() => {
@@ -58,16 +60,11 @@ function App({ jwt }: { jwt: string }) {
 
   useHandleSessionHistory();
 
-  // useEffect(() => {
-  //   if (sessionStatus === "DISCONNECTED") {
-  //     connectToRealtime();
-  //   }
-  // }, []);
-
   useEffect(() => {
     if (typeof window !== 'undefined') {
       import('@zoom/videosdk').then(({ default: ZoomVideo, ConnectionState }) => {
         const client = ZoomVideo.createClient();
+        clientRef.current = client;
         client.on('connection-change', (e) => {
           if (e.state === ConnectionState.Connected) {
             // openai sdk is not connected 
@@ -76,7 +73,7 @@ function App({ jwt }: { jwt: string }) {
             }
           }
           if (e.state === ConnectionState.Closed) {
-            disconnect()
+            disconnectFromRealtime()
           }
         });
       }).catch((error) => {
@@ -87,9 +84,10 @@ function App({ jwt }: { jwt: string }) {
 
   useEffect(() => {
     if (sessionStatus === "CONNECTED") {
+      console.log('update session')
       updateSession();
     }
-  }, [isPTTActive]);
+  }, [isPTTActive, sessionStatus]);
 
   const fetchEphemeralKey = async (): Promise<string | null> => {
     logClientEvent({ url: "/session" }, "fetch_session_token_request");
@@ -175,6 +173,10 @@ function App({ jwt }: { jwt: string }) {
 
   const handleTalkButtonDown = () => {
     if (sessionStatus !== 'CONNECTED') return;
+    if (clientRef.current) {
+      const stream = clientRef.current.getMediaStream();
+      stream.muteAudio()
+    }
     interrupt();
     setIsPTTUserSpeaking(true);
     sendClientEvent({ type: 'input_audio_buffer.clear' }, 'clear PTT buffer');
@@ -183,20 +185,14 @@ function App({ jwt }: { jwt: string }) {
   const handleTalkButtonUp = () => {
     if (sessionStatus !== 'CONNECTED' || !isPTTUserSpeaking)
       return;
+    if (clientRef.current) {
+      const stream = clientRef.current.getMediaStream();
+      stream.unmuteAudio()
+    }
     setIsPTTUserSpeaking(false);
     sendClientEvent({ type: 'input_audio_buffer.commit' }, 'commit PTT');
     sendClientEvent({ type: 'response.create' }, 'trigger response PTT');
   };
-
-  const onToggleConnection = () => {
-    if (sessionStatus === "CONNECTED" || sessionStatus === "CONNECTING") {
-      disconnectFromRealtime();
-      setSessionStatus("DISCONNECTED");
-    } else {
-      connectToRealtime();
-    }
-  };
-
 
   useEffect(() => {
     if (audioElementRef.current) {
@@ -235,30 +231,28 @@ function App({ jwt }: { jwt: string }) {
 
   return (
     <div className="text-base flex flex-col h-screen bg-gray-100 text-gray-800 relative">
-      <div className="p-2 text-lg font-semibold flex justify-between items-center text-center m-auto">
-        <div className="flex items-center cursor-pointer" onClick={() => window.location.reload()}        >
-          <div>
-            <Image
-              src="/Zoom-Logo.png"
-              alt="OpenAI Logo"
-              width={100}
-              height={20}
-              className="mr-2"
-            />
-          </div>
-          <div className="mr-2">x</div>
-          <div>
-            <Image
-              src="/openai-logomark.svg"
-              alt="OpenAI Logo"
-              width={20}
-              height={20}
-              className="mr-2"
-            />
-          </div>
-          <div>
-            OpenAI Realtime <span className="text-gray-500">Agents</span>
-          </div>
+      <div className="flex items-center cursor-pointer p-2 text-lg font-semibold flex justify-between items-center text-center m-auto" onClick={() => window.location.reload()}        >
+        <div>
+          <Image
+            src="/Zoom-Logo.png"
+            alt="OpenAI Logo"
+            width={70}
+            height={20}
+            className="mr-2"
+          />
+        </div>
+        <div className="mr-2">Video SDK x</div>
+        <div>
+          <Image
+            src="/openai-logomark.svg"
+            alt="OpenAI Logo"
+            width={20}
+            height={20}
+            className="mr-2"
+          />
+        </div>
+        <div>
+          OpenAI Realtime Agents Demo
         </div>
       </div>
       <div className="flex flex-col flex-1 gap-2 px-2 overflow-hidden relative">
@@ -278,7 +272,6 @@ function App({ jwt }: { jwt: string }) {
         </div>
         <BottomToolbar
           sessionStatus={sessionStatus}
-          onToggleConnection={onToggleConnection}
           isPTTActive={isPTTActive}
           setIsPTTActive={setIsPTTActive}
           isPTTUserSpeaking={isPTTUserSpeaking}

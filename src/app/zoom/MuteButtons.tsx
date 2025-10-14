@@ -1,5 +1,5 @@
-import { type Dispatch, type RefObject, type SetStateAction } from "react";
-import type { VideoClient } from "@zoom/videosdk";
+import { useEffect, type Dispatch, type RefObject, type SetStateAction } from "react";
+import type { event_current_audio_change, event_video_capturing_change, VideoClient } from "@zoom/videosdk";
 import { Mic, MicOff, Video, VideoOff } from "lucide-react";
 
 const MicButton = (props: {
@@ -8,11 +8,25 @@ const MicButton = (props: {
   setIsAudioMuted: Dispatch<SetStateAction<boolean>>;
 }) => {
   const { client, isAudioMuted, setIsAudioMuted } = props;
+  const handleAudioStatus: typeof event_current_audio_change = (e) => {
+    if (e.action === 'muted') {
+      setIsAudioMuted(true)
+    } else if (e.action === 'unmuted') {
+      setIsAudioMuted(false)
+    }
+  };
+  useEffect(() => {
+    client.current.on('current-audio-change', handleAudioStatus)
+    return () => {
+      client.current.off('current-audio-change', handleAudioStatus)
+    }
+  }, [])
   const onMicrophoneClick = async () => {
     const mediaStream = client.current.getMediaStream();
-    if (isAudioMuted) await mediaStream?.unmuteAudio()
-    else await mediaStream?.muteAudio();
-    setIsAudioMuted(client.current.getCurrentUserInfo().muted ?? true);
+    if (isAudioMuted)
+      await mediaStream?.unmuteAudio()
+    else
+      await mediaStream?.muteAudio();
   };
   return (
     <button onClick={onMicrophoneClick} title="microphone">
@@ -31,19 +45,29 @@ const CameraButton = (props: {
   }) => Promise<void>;
 }) => {
   const { client, isVideoMuted, setIsVideoMuted, renderVideo } = props;
-
+  const handleVideoStatus: typeof event_video_capturing_change = (e) => {
+    if (e.state === 'Started') {
+      setIsVideoMuted(false)
+    } else if (e.state === 'Stopped') {
+      setIsVideoMuted(true)
+    }
+  };
+  useEffect(() => {
+    client.current.on('video-capturing-change', handleVideoStatus)
+    return () => {
+      client.current.off('video-capturing-change', handleVideoStatus)
+    }
+  }, [])
   const onCameraClick = async () => {
     const mediaStream = client.current.getMediaStream();
     if (isVideoMuted) {
       await mediaStream.startVideo();
-      setIsVideoMuted(false);
       await renderVideo({
         action: "Start",
         userId: client.current.getCurrentUserInfo().userId,
       });
     } else {
       await mediaStream.stopVideo();
-      setIsVideoMuted(true);
       await renderVideo({
         action: "Stop",
         userId: client.current.getCurrentUserInfo().userId,

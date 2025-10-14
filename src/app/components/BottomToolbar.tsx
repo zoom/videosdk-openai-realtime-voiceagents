@@ -3,7 +3,6 @@ import { SessionStatus } from "@/app/types";
 
 interface BottomToolbarProps {
   sessionStatus: SessionStatus;
-  onToggleConnection: () => void;
   isPTTActive: boolean;
   setIsPTTActive: (val: boolean) => void;
   isPTTUserSpeaking: boolean;
@@ -17,7 +16,6 @@ interface BottomToolbarProps {
 
 function BottomToolbar({
   sessionStatus,
-  onToggleConnection,
   isPTTActive,
   setIsPTTActive,
   isPTTUserSpeaking,
@@ -31,36 +29,21 @@ function BottomToolbar({
   const isConnected = sessionStatus === "CONNECTED";
   const isConnecting = sessionStatus === "CONNECTING";
 
-
-  function getConnectionButtonLabel() {
-    if (isConnected) return "Disconnect";
+  function getConnectionSpanLabel() {
+    if (isConnected) return "Connected";
     if (isConnecting) return "Connecting...";
-    return "Connect";
-  }
-
-  function getConnectionButtonClasses() {
-    const baseClasses = "text-white text-base p-2 w-36 rounded-md h-full";
-    const cursorClass = isConnecting ? "cursor-not-allowed" : "cursor-pointer";
-
-    if (isConnected) {
-      // Connected -> label "Disconnect" -> red
-      return `bg-red-600 hover:bg-red-700 ${cursorClass} ${baseClasses}`;
-    }
-    // Disconnected or connecting -> label is either "Connect" or "Connecting" -> black
-    return `bg-black hover:bg-gray-900 ${cursorClass} ${baseClasses}`;
+    return "Disconnected";
   }
 
   return (
     <div className="p-4 flex flex-row items-center justify-center gap-x-8">
-      <span>Agent Toolbar:</span>
-      <button
-        onClick={onToggleConnection}
-        className={getConnectionButtonClasses()}
-        disabled={isConnecting}
-      >
-        {getConnectionButtonLabel()}
-      </button>
-
+      <span>Agent Status:
+        <span
+          className={isConnected ? "text-green-600" : "text-gray-800"}
+        >
+          {" " + getConnectionSpanLabel()}
+        </span>
+      </span>
       <div className="flex flex-row items-center gap-2">
         <input
           id="push-to-talk"
