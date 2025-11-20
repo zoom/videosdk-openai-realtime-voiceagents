@@ -2,7 +2,7 @@
 ![](public/cover.png)
 This is a demo app for using voice agents the OpenAI Agents SDK in a Zoom Video SDK session.
 
-Use of this Sample App is subject to our [Terms of Use](https://www.zoom.com/en/trust/terms/).
+Use of this Sample App is subject to our [Terms of Use](https://www.zoom.com/en/trust/video-sdk-terms/).
 
 This project uses the [Zoom Video SDK](https://developers.zoom.us/docs/video-sdk/) with [OpenAI Agents SDK](https://github.com/openai/openai-agents-js).
 
