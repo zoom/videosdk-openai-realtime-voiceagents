@@ -1,5 +1,6 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "realtime-examples",
@@ -7,7 +8,7 @@
         "@openai/agents": "^0.0.5",
         "@radix-ui/react-icons": "^1.3.2",
         "@types/jsrsasign": "^10.5.15",
-        "@zoom/videosdk": "^2.3.5",
+        "@zoom/videosdk": "^2.3.15",
         "dotenv": "^16.4.7",
         "jsrsasign": "^11.1.0",
         "lucide-react": "^0.544.0",
@@ -223,7 +224,7 @@
 
     "@unrs/resolver-binding-darwin-x64": ["@unrs/resolver-binding-darwin-x64@1.7.11", "", { "os": "darwin", "cpu": "x64" }, "sha512-8XXyFvc6w6kmMmi6VYchZhjd5CDcp+Lv6Cn1YmUme0ypsZ/0Kzd+9ESrWtDrWibKPTgSteDTxp75cvBOY64FQQ=="],
 
-    "@zoom/videosdk": ["@zoom/videosdk@2.3.5", "", {}, "sha512-Zs/ASdN/n7uNxrHcQ7qsRyoBFMIy0CRCe1R70zbqlNiQJ+N7bwsFpfsxOrjljYBOkbkjzCMEszZPSpB6ZHMVxg=="],
+    "@zoom/videosdk": ["@zoom/videosdk@2.3.15", "", {}, "sha512-4+vAI/LCsjPdWV36KjXuRVfre0NErOBWBLGipEtIZOpErhP5Ktjoz9lyt7tyZ0pWulk3N1cTQepOilQXF5//NA=="],
 
     "abort-controller": ["abort-controller@3.0.0", "", { "dependencies": { "event-target-shim": "^5.0.0" } }, "sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg=="],
 
